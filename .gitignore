@@ -6,6 +6,9 @@ __pycache__/
 venv/
 backend/venv/
 
+# Database
+backend/sports_injury.db
+
 # Environment variables
 .env
 

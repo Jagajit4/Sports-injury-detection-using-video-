@@ -1,9 +1,12 @@
 from fastapi import FastAPI
+from .routes import auth
+from .database import engine
+from . import models
 
-# Create a FastAPI application
 app = FastAPI()
+app.include_router(auth.router)
+models.Base.metadata.create_all(bind=engine)
 
-# Home route
 @app.get("/")
 def home():
     return {
@@ -11,9 +14,8 @@ def home():
         "status": "Backend is running successfully!"
     }
 
-# Health check route
 @app.get("/health")
 def health():
     return {
-        "status": "OK"
+        "status": "healthy"
     }
