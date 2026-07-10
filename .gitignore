@@ -1,1 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
 
+# Virtual Environment
+venv/
+backend/venv/
+
+# Database
+backend/sports_injury.db
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
