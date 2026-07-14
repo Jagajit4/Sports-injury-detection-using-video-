@@ -13,8 +13,23 @@ router = APIRouter(
 @router.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
+    # Check if email already exists
+    existing_user = db.query(models.User).filter(
+        models.User.email == user.email
+    ).first()
+
+    if existing_user:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    # Hash password
     hashed_pwd = hash_password(user.password)
 
+    # Create user
     new_user = models.User(
         username=user.username,
         email=user.email,
