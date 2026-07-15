@@ -1,11 +1,30 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from .routes import auth
 from .database import engine
 from . import models
 
 app = FastAPI()
-app.include_router(auth.router)
+
+# Allow requests from React frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Create tables
 models.Base.metadata.create_all(bind=engine)
+
+# Register routes
+app.include_router(auth.router)
+
 
 @app.get("/")
 def home():
@@ -13,6 +32,7 @@ def home():
         "project": "Sports Injury Risk Detection",
         "status": "Backend is running successfully!"
     }
+
 
 @app.get("/health")
 def health():
