@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
+
+
 function App() {
     return (
         <>
@@ -32,6 +34,7 @@ function App() {
                 />
 
                 <Route path="*" element={<NotFound />} />
+                
             </Routes>
 
             <Footer />

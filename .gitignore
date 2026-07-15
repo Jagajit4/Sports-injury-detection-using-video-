@@ -2,14 +2,15 @@
 __pycache__/
 *.py[cod]
 
-# Virtual Environment
+# Virtual Environments
 venv/
+.venv/
 backend/venv/
 
 # Database
 backend/sports_injury.db
 
-# Environment variables
+# Environment Variables
 .env
 
 # VS Code
@@ -17,3 +18,12 @@ backend/sports_injury.db
 
 # macOS
 .DS_Store
+
+# React / Vite
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
