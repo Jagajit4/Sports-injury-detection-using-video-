@@ -1,16 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-
-
 
 function App() {
     return (
@@ -18,11 +16,21 @@ function App() {
             <Navbar />
 
             <Routes>
-                <Route path="/" element={<Landing />} />
 
-                <Route path="/register" element={<Register />} />
+                <Route
+                    path="/"
+                    element={<Landing />}
+                />
 
-                <Route path="/login" element={<Login />} />
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
+
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
                 <Route
                     path="/dashboard"
@@ -33,11 +41,22 @@ function App() {
                     }
                 />
 
-                <Route path="*" element={<NotFound />} />
-                
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <Profile />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="*"
+                    element={<NotFound />}
+                />
+
             </Routes>
 
-            <Footer />
         </>
     );
 }

@@ -2,10 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import auth
+from .routes import video
 from .database import engine
 from . import models
 
-app = FastAPI()
+app = FastAPI(
+    title="Sports Injury Detection API"
+)
 
 # Allow requests from React frontend
 app.add_middleware(
@@ -19,11 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create tables
+# Create database tables
 models.Base.metadata.create_all(bind=engine)
 
-# Register routes
+# Register API routes
 app.include_router(auth.router)
+app.include_router(video.router)
 
 
 @app.get("/")

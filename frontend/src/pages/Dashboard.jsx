@@ -1,82 +1,240 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
 import api from "../services/api";
+import VideoUpload from "../components/VideoUpload";
+import "../styles/dashboard.css";
 
 export default function Dashboard() {
 
-    const navigate = useNavigate();
-
-    const [email, setEmail] = useState("");
+    const [user, setUser] = useState({});
+    const [videos, setVideos] = useState([]);
 
     useEffect(() => {
 
-        async function getUser() {
-
-            try {
-
-                const token = localStorage.getItem("token");
-
-                const response = await api.get("/auth/me", {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                setEmail(response.data.email);
-
-            } catch (error) {
-
-                localStorage.removeItem("token");
-
-                navigate("/login");
-
-            }
-
-        }
-
         getUser();
+        getVideos();
 
     }, []);
 
-    function logout() {
+    async function getUser() {
 
-        localStorage.removeItem("token");
+        try {
 
-        navigate("/login");
+            const token = localStorage.getItem("token");
+
+            const response = await api.get("/auth/me", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            setUser(response.data);
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    }
+
+    async function getVideos() {
+
+        try {
+
+            const token = localStorage.getItem("token");
+
+            const response = await api.get("/video/my-videos", {
+
+                headers: {
+
+                    Authorization: `Bearer ${token}`
+
+                }
+
+            });
+
+            setVideos(response.data);
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+        }
 
     }
 
     return (
 
-        <div className="form-container">
+        <div className="dashboard">
 
-            <h1>Sports Injury Detection Dashboard</h1>
+            <div className="hero">
 
-            <h3>Welcome</h3>
+                <div>
 
-            <p><strong>{email}</strong></p>
+                    <h1>Welcome back, {user.username} 👋</h1>
 
-            <hr />
+                    <p>
 
-            <h3>Authentication Status</h3>
+                        Track your training sessions,
+                        upload videos and analyze movement
+                        to prevent sports injuries.
 
-            <p>✅ JWT Authentication Working</p>
+                    </p>
 
-            <hr />
+                    <h3>
 
-            <h3>Upcoming Modules</h3>
+                        Sport
 
-            <ul style={{ textAlign: "left" }}>
-                <li>Video Upload</li>
-                <li>Pose Estimation</li>
-                <li>Movement Analysis</li>
-                <li>Injury Risk Prediction</li>
-                <li>Report Generation</li>
-            </ul>
+                        <span> Athlete</span>
 
-            <button onClick={logout}>
-                Logout
-            </button>
+                    </h3>
+
+                </div>
+
+                <FaUserCircle
+                    className="profile-icon"
+                />
+
+            </div>
+
+
+            <div className="stats">
+
+                <div className="stat-card">
+
+                    <h2>{videos.length}</h2>
+
+                    <p>Videos Uploaded</p>
+
+                </div>
+
+                <div className="stat-card">
+
+                    <h2>0</h2>
+
+                    <p>Hours Analysed</p>
+
+                </div>
+
+                <div className="stat-card">
+
+                    <h2>0</h2>
+
+                    <p>Injury Alerts</p>
+
+                </div>
+
+            </div>
+
+
+            <div className="middle-section">
+
+                <div className="upload-card">
+
+                    <h2>Training Video</h2>
+
+                    <p>
+
+                        Upload your latest training
+                        session.
+
+                    </p>
+
+                    <VideoUpload />
+
+                </div>
+
+                <div className="tips-card">
+
+                    <h2>Training Tips</h2>
+
+                    <ul>
+
+                        <li>Warm up before training</li>
+
+                        <li>Maintain correct posture</li>
+
+                        <li>Stay hydrated</li>
+
+                        <li>Take recovery seriously</li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+
+            <div className="recent-card">
+
+                <h2>
+
+                    Recent Uploads
+
+                </h2>
+
+                {
+
+                    videos.length === 0 ?
+
+                        (
+
+                            <p>No videos uploaded.</p>
+
+                        )
+
+                        :
+
+                        (
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Video</th>
+
+                                        <th>Status</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {
+
+                                        videos.map(video => (
+
+                                            <tr key={video.id}>
+
+                                                <td>{video.filename}</td>
+
+                                                <td>
+
+                                                    ✅ Uploaded
+
+                                                </td>
+
+                                            </tr>
+
+                                        ))
+
+                                    }
+
+                                </tbody>
+
+                            </table>
+
+                        )
+
+                }
+
+            </div>
 
         </div>
 
