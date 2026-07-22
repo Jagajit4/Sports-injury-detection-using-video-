@@ -7,6 +7,7 @@ import os
 from .. import models
 from ..dependencies import get_db
 from ..jwt_handler import verify_token
+from ..services.pose_estimation import process_video
 
 router = APIRouter(
     prefix="/video",
@@ -49,7 +50,10 @@ def upload_video(
     db: Session = Depends(get_db)
 ):
 
-    user = get_current_user(credentials.credentials, db)
+    user = get_current_user(
+        credentials.credentials,
+        db
+    )
 
     filepath = os.path.join(
         UPLOAD_FOLDER,
@@ -59,17 +63,25 @@ def upload_video(
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    analysis = process_video(filepath)
+
     video = models.Video(
         filename=file.filename,
         filepath=filepath,
-        owner_id=user.id
+        owner_id=user.id,
+        frames_processed=analysis["frames_processed"],
+        pose_detected_frames=analysis["pose_detected_frames"],
+        average_knee_angle=analysis["average_knee_angle"],
+        injury_risk=analysis["injury_risk"]
     )
 
     db.add(video)
     db.commit()
+    db.refresh(video)
 
     return {
-        "message": "Video Uploaded Successfully"
+        "message": "Video Uploaded Successfully",
+        "analysis": analysis
     }
 
 
@@ -88,4 +100,30 @@ def my_videos(
         models.Video.owner_id == user.id
     ).all()
 
-    return videos
+    result = []
+
+    for video in videos:
+
+        result.append({
+
+            "id": video.id,
+
+            "filename": video.filename,
+
+            "filepath": video.filepath,
+
+            "analysis": {
+
+                "frames_processed": video.frames_processed,
+
+                "pose_detected_frames": video.pose_detected_frames,
+
+                "average_knee_angle": video.average_knee_angle,
+
+                "injury_risk": video.injury_risk
+
+            }
+
+        })
+
+    return result

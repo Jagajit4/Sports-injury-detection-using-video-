@@ -42,7 +42,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         gender=user.gender,
         height=user.height,
         weight=user.weight,
-        sport=user.sport
+        sport=user.sport,
+        experience=user.experience
     )
 
     db.add(new_user)
@@ -123,7 +124,8 @@ def get_current_user(
         "gender": user.gender,
         "height": user.height,
         "weight": user.weight,
-        "sport": user.sport
+        "sport": user.sport,
+        "experience": user.experience
     }
 
 
@@ -160,9 +162,21 @@ def update_profile(
     user.height = profile.height
     user.weight = profile.weight
     user.sport = profile.sport
+    user.experience = profile.experience
 
     db.commit()
+    db.refresh(user)
 
     return {
-        "message": "Profile Updated Successfully"
+        "message": "Profile updated successfully",
+        "profile": {
+            "username": user.username,
+            "email": user.email,
+            "age": user.age,
+            "gender": user.gender,
+            "height": user.height,
+            "weight": user.weight,
+            "sport": user.sport,
+            "experience": user.experience
+        }
     }

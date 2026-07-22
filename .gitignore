@@ -1,29 +1,74 @@
+# ==========================================
 # Python
+# ==========================================
+
 __pycache__/
 *.py[cod]
+*$py.class
 
 # Virtual Environments
 venv/
 .venv/
 backend/venv/
-
-# Database
-backend/sports_injury.db
+frontend/venv/
 
 # Environment Variables
 .env
+.env.*
 
+# ==========================================
+# Database
+# ==========================================
+
+*.db
+*.sqlite3
+
+# ==========================================
+# Uploaded & Generated Videos
+# ==========================================
+
+backend/uploads/*
+backend/processed/*
+
+# Keep folders in Git
+!backend/uploads/.gitkeep
+!backend/processed/.gitkeep
+
+# ==========================================
+# Python Build Files
+# ==========================================
+
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ==========================================
 # VS Code
+# ==========================================
+
 .vscode/
 
-# macOS
-.DS_Store
+# ==========================================
+# Node / React
+# ==========================================
 
-# React / Vite
 frontend/node_modules/
 frontend/dist/
-
-# Logs
-*.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# OS Files
+# ==========================================
+
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Logs
+# ==========================================
+
+*.log

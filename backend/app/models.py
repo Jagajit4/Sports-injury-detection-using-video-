@@ -25,6 +25,8 @@ class User(Base):
 
     sport = Column(String, nullable=True)
 
+    experience = Column(Integer, nullable=True)
+
     videos = relationship("Video", back_populates="owner")
 
 
@@ -38,5 +40,13 @@ class Video(Base):
     filepath = Column(String, nullable=False)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
+
+    frames_processed = Column(Integer, default=0)
+
+    pose_detected_frames = Column(Integer, default=0)
+
+    average_knee_angle = Column(Float, default=0)
+
+    injury_risk = Column(String, default="Unknown")
 
     owner = relationship("User", back_populates="videos")

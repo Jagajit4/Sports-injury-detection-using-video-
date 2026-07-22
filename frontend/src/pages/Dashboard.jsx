@@ -10,11 +10,13 @@ export default function Dashboard() {
     const [videos, setVideos] = useState([]);
 
     useEffect(() => {
-
-        getUser();
-        getVideos();
-
+        loadDashboard();
     }, []);
+
+    async function loadDashboard() {
+        await getUser();
+        await getVideos();
+    }
 
     async function getUser() {
 
@@ -30,7 +32,9 @@ export default function Dashboard() {
 
             setUser(response.data);
 
-        } catch (err) {
+        }
+
+        catch (err) {
 
             console.log(err);
 
@@ -47,9 +51,7 @@ export default function Dashboard() {
             const response = await api.get("/video/my-videos", {
 
                 headers: {
-
                     Authorization: `Bearer ${token}`
-
                 }
 
             });
@@ -66,6 +68,11 @@ export default function Dashboard() {
 
     }
 
+    const latestVideo =
+        videos.length > 0
+            ? videos[videos.length - 1]
+            : null;
+
     return (
 
         <div className="dashboard">
@@ -78,27 +85,24 @@ export default function Dashboard() {
 
                     <p>
 
-                        Track your training sessions,
-                        upload videos and analyze movement
-                        to prevent sports injuries.
+                        Upload training videos and let AI analyze
+                        your posture, knee movement and injury risk.
 
                     </p>
 
                     <h3>
 
-                        Sport
-
-                        <span> Athlete</span>
+                        Sport :
+                        <span> {user.sport || "Athlete"}</span>
 
                     </h3>
 
                 </div>
 
-                <FaUserCircle
-                    className="profile-icon"
-                />
+                <FaUserCircle className="profile-icon" />
 
             </div>
+
 
 
             <div className="stats">
@@ -113,33 +117,50 @@ export default function Dashboard() {
 
                 <div className="stat-card">
 
-                    <h2>0</h2>
+                    <h2>
 
-                    <p>Hours Analysed</p>
+                        {
+                            latestVideo
+                                ? latestVideo.analysis.average_knee_angle.toFixed(1)
+                                : "--"
+                        }°
+
+                    </h2>
+
+                    <p>Average Knee Angle</p>
 
                 </div>
 
                 <div className="stat-card">
 
-                    <h2>0</h2>
+                    <h2>
 
-                    <p>Injury Alerts</p>
+                        {
+                            latestVideo
+                                ? latestVideo.analysis.injury_risk
+                                : "--"
+                        }
+
+                    </h2>
+
+                    <p>Current Injury Risk</p>
 
                 </div>
 
             </div>
 
 
+
             <div className="middle-section">
 
                 <div className="upload-card">
 
-                    <h2>Training Video</h2>
+                    <h2>Upload Training Video</h2>
 
                     <p>
 
-                        Upload your latest training
-                        session.
+                        Upload your latest athlete movement
+                        video for AI-powered posture analysis.
 
                     </p>
 
@@ -149,17 +170,19 @@ export default function Dashboard() {
 
                 <div className="tips-card">
 
-                    <h2>Training Tips</h2>
+                    <h2>AI Recommendations</h2>
 
                     <ul>
 
-                        <li>Warm up before training</li>
+                        <li>✔ Warm up before every training session.</li>
 
-                        <li>Maintain correct posture</li>
+                        <li>✔ Keep knees aligned while landing.</li>
 
-                        <li>Stay hydrated</li>
+                        <li>✔ Avoid excessive inward knee movement.</li>
 
-                        <li>Take recovery seriously</li>
+                        <li>✔ Maintain balanced posture.</li>
+
+                        <li>✔ Take sufficient recovery time.</li>
 
                     </ul>
 
@@ -168,69 +191,74 @@ export default function Dashboard() {
             </div>
 
 
+
             <div className="recent-card">
 
-                <h2>
-
-                    Recent Uploads
-
-                </h2>
+                <h2>Analysis History</h2>
 
                 {
 
                     videos.length === 0 ?
 
-                        (
-
-                            <p>No videos uploaded.</p>
-
-                        )
+                        <p>No videos uploaded.</p>
 
                         :
 
-                        (
+                        <table>
 
-                            <table>
+                            <thead>
 
-                                <thead>
+                                <tr>
 
-                                    <tr>
+                                    <th>Video</th>
 
-                                        <th>Video</th>
+                                    <th>Frames</th>
 
-                                        <th>Status</th>
+                                    <th>Pose Frames</th>
 
-                                    </tr>
+                                    <th>Knee Angle</th>
 
-                                </thead>
+                                    <th>Risk</th>
 
-                                <tbody>
+                                </tr>
 
-                                    {
+                            </thead>
 
-                                        videos.map(video => (
+                            <tbody>
 
-                                            <tr key={video.id}>
+                                {
 
-                                                <td>{video.filename}</td>
+                                    videos.map(video => (
 
-                                                <td>
+                                        <tr key={video.id}>
 
-                                                    ✅ Uploaded
+                                            <td>{video.filename}</td>
 
-                                                </td>
+                                            <td>{video.analysis.frames_processed}</td>
 
-                                            </tr>
+                                            <td>{video.analysis.pose_detected_frames}</td>
 
-                                        ))
+                                            <td>
 
-                                    }
+                                                {video.analysis.average_knee_angle.toFixed(2)}°
 
-                                </tbody>
+                                            </td>
 
-                            </table>
+                                            <td>
 
-                        )
+                                                {video.analysis.injury_risk}
+
+                                            </td>
+
+                                        </tr>
+
+                                    ))
+
+                                }
+
+                            </tbody>
+
+                        </table>
 
                 }
 

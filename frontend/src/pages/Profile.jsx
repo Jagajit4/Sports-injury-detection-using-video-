@@ -4,37 +4,85 @@ import "../styles/profile.css";
 
 export default function Profile() {
 
-    const [user, setUser] = useState({});
+    const [user, setUser] = useState({
+        username: "",
+        email: "",
+        age: "",
+        gender: "",
+        height: "",
+        weight: "",
+        sport: "",
+        experience: ""
+    });
+
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
-
-        getUser();
-
+        loadProfile();
     }, []);
 
-    async function getUser() {
+    async function loadProfile() {
 
         const token = localStorage.getItem("token");
 
         try {
 
             const response = await api.get("/auth/me", {
-
                 headers: {
-
                     Authorization: `Bearer ${token}`
-
                 }
-
             });
 
             setUser(response.data);
 
+        } catch (error) {
+
+            console.log(error);
+
+        }
+    }
+
+    function handleChange(e) {
+
+        setUser({
+            ...user,
+            [e.target.name]: e.target.value
+        });
+
+    }
+
+    async function saveProfile() {
+
+        const token = localStorage.getItem("token");
+
+        try {
+
+            await api.put(
+                "/auth/profile",
+                {
+                    age: Number(user.age),
+                    gender: user.gender,
+                    height: Number(user.height),
+                    weight: Number(user.weight),
+                    sport: user.sport,
+                    experience: Number(user.experience)
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            setMessage("✅ Profile updated successfully.");
+
         }
 
-        catch (err) {
+        catch (error) {
 
-            console.log(err);
+            console.log(error);
+
+            setMessage("❌ Failed to update profile.");
 
         }
 
@@ -50,13 +98,15 @@ export default function Profile() {
 
                     <div className="profile-avatar">
 
-                        {user.username?.charAt(0).toUpperCase()}
+                        {user.username
+                            ? user.username.charAt(0).toUpperCase()
+                            : "A"}
 
                     </div>
 
                     <div>
 
-                        <h1>{user.username}</h1>
+                        <h2>{user.username}</h2>
 
                         <p>{user.email}</p>
 
@@ -64,47 +114,91 @@ export default function Profile() {
 
                 </div>
 
-                <div className="profile-details">
+                <div className="profile-form">
 
-                    <div className="detail">
+                    <label>Age</label>
 
-                        <span>Sport</span>
+                    <input
+                        type="number"
+                        name="age"
+                        value={user.age || ""}
+                        onChange={handleChange}
+                    />
 
-                        <strong>Athlete</strong>
+                    <label>Gender</label>
 
-                    </div>
+                    <select
+                        name="gender"
+                        value={user.gender || ""}
+                        onChange={handleChange}
+                    >
 
-                    <div className="detail">
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
 
-                        <span>Age</span>
+                    </select>
 
-                        <strong>20 Years</strong>
+                    <label>Height (cm)</label>
 
-                    </div>
+                    <input
+                        type="number"
+                        name="height"
+                        value={user.height || ""}
+                        onChange={handleChange}
+                    />
 
-                    <div className="detail">
+                    <label>Weight (kg)</label>
 
-                        <span>Height</span>
+                    <input
+                        type="number"
+                        name="weight"
+                        value={user.weight || ""}
+                        onChange={handleChange}
+                    />
 
-                        <strong>175 cm</strong>
+                    <label>Sport</label>
 
-                    </div>
+                    <input
+                        type="text"
+                        name="sport"
+                        value={user.sport || ""}
+                        onChange={handleChange}
+                    />
 
-                    <div className="detail">
+                    <label>Experience (Years)</label>
 
-                        <span>Weight</span>
-
-                        <strong>70 kg</strong>
-
-                    </div>
+                    <input
+                        type="number"
+                        name="experience"
+                        value={user.experience || ""}
+                        onChange={handleChange}
+                    />
 
                 </div>
 
-                <button className="edit-btn">
-
-                    Edit Profile
-
+                <button
+                    className="edit-btn"
+                    onClick={saveProfile}
+                >
+                    Save Profile
                 </button>
+
+                {message &&
+
+                    <p
+                        style={{
+                            marginTop: "20px",
+                            textAlign: "center",
+                            color: "#1b8f3f",
+                            fontWeight: "600"
+                        }}
+                    >
+                        {message}
+                    </p>
+
+                }
 
             </div>
 

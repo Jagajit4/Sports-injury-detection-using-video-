@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import UploadVideo from "./pages/UploadVideo";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -46,6 +47,15 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <Profile />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/upload"
+                    element={
+                        <ProtectedRoute>
+                            <UploadVideo />
                         </ProtectedRoute>
                     }
                 />

@@ -1,42 +1,43 @@
 # AI-Powered Sports Injury Risk Detection Using Video
 
-## Project Overview
+## Overview
 
-The AI-Powered Sports Injury Risk Detection Platform analyzes athlete movement videos to identify biomechanical abnormalities, estimate injury risks, and provide corrective recommendations before injuries occur.
+This project is an AI-powered web application that analyzes athlete movement videos to detect biomechanical abnormalities and estimate injury risk before injuries occur.
 
-The system combines Computer Vision, Pose Estimation, Biomechanics Analysis, and Machine Learning to help athletes, coaches, physiotherapists, and sports scientists improve performance while reducing injury risks.
+The platform combines Computer Vision, Pose Estimation, and Machine Learning techniques to help athletes, coaches, physiotherapists, and sports scientists improve performance while reducing injury risk.
 
 ---
 
 ## Features
 
-### Completed (Milestone 1)
+### User Module
 
 - User Registration
-- User Login
+- Secure Login
 - JWT Authentication
+- Athlete Profile
 - Protected Dashboard
-- Secure Password Hashing
-- SQLite Database Integration
-- REST API using FastAPI
-- React Frontend
-- React Router Navigation
-- Backend–Frontend Integration
 
-### Planned (Milestone 2 & Beyond)
+### Video Analysis Module
 
 - Video Upload
-- Pose Estimation
+- Pose Estimation using MediaPipe
 - Human Skeleton Detection
-- Joint Angle Calculation
-- Movement Analysis
+- Knee Angle Calculation
 - Injury Risk Prediction
-- Corrective Feedback
-- Report Generation
+- Analysis History
+
+### Dashboard
+
+- Total Uploaded Videos
+- Latest Knee Angle
+- Current Injury Risk
+- AI Recommendations
+- Previous Analysis Records
 
 ---
 
-## Tech Stack
+## Technology Stack
 
 ### Frontend
 
@@ -51,111 +52,42 @@ The system combines Computer Vision, Pose Estimation, Biomechanics Analysis, and
 - SQLAlchemy
 - SQLite
 - JWT Authentication
-- Passlib (bcrypt)
+- Passlib
 
-### AI & Computer Vision (Upcoming)
+### AI / Computer Vision
 
 - OpenCV
 - MediaPipe
-- Scikit-learn
-- TensorFlow / PyTorch
+- NumPy
 
 ---
 
 ## Project Structure
 
 ```
-Sports-injury-detection-using-video-
-│
-├── backend/
-│   ├── app/
-│   ├── requirements.txt
-│   └── sports_injury.db
-│
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── package.json
-│
-├── datasets/
-│
-├── docs/
-│
-└── README.md
+frontend/
+backend/
+datasets/
+docs/
+README.md
 ```
 
 ---
 
-## Installation
+## Future Enhancements
 
-### Clone Repository
-
-```bash
-git clone <repository-url>
-cd Sports-injury-detection-using-video-
-```
-
-### Backend
-
-```bash
-cd backend
-
-python -m venv venv
-
-source venv/bin/activate
-
-pip install -r requirements.txt
-
-uvicorn app.main:app --reload
-```
-
-Backend runs on:
-
-```
-http://127.0.0.1:8000
-```
+- Real-time webcam posture analysis
+- Injury prediction using Machine Learning
+- Coach Dashboard
+- Physiotherapist Dashboard
+- Athlete Progress Reports
+- PDF Report Generation
+- Cloud Deployment
 
 ---
 
-### Frontend
+## Developed By
 
-```bash
-cd frontend
+Infosys Springboard Internship Project
 
-npm install
-
-npm run dev
-```
-
-Frontend runs on:
-
-```
-http://localhost:5173
-```
-
----
-
-## Authentication
-
-- Register a new account
-- Login with email and password
-- JWT token generation
-- Protected Dashboard
-- Logout functionality
-
----
-
-## Future Scope
-
-- Real-time athlete monitoring
-- Injury prediction using machine learning
-- Coach dashboard
-- Physiotherapist dashboard
-- Injury analytics
-- Cloud deployment
-
----
-
-## Team
-
-Project developed as part of the **AI-Powered Sports Injury Risk Detection Platform**.
+AI-Powered Sports Injury Risk Detection Platform

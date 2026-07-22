@@ -8,6 +8,7 @@ export default function VideoUpload() {
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [message, setMessage] = useState("");
+    const [analysis, setAnalysis] = useState(null);
 
     function chooseFile() {
         inputRef.current.click();
@@ -18,14 +19,13 @@ export default function VideoUpload() {
         if (!file) return;
 
         const formData = new FormData();
-
         formData.append("file", file);
 
         const token = localStorage.getItem("token");
 
         try {
 
-            await api.post(
+            const response = await api.post(
                 "/video/upload",
                 formData,
                 {
@@ -37,6 +37,12 @@ export default function VideoUpload() {
             );
 
             setMessage("Video uploaded successfully.");
+            setAnalysis(response.data.analysis);
+
+            // Refresh dashboard automatically
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
 
         }
 
@@ -80,17 +86,9 @@ export default function VideoUpload() {
                     color="#2563eb"
                 />
 
-                <h3>
+                <h3>Upload Training Video</h3>
 
-                    Upload Training Video
-
-                </h3>
-
-                <p>
-
-                    MP4 • AVI • MOV
-
-                </p>
+                <p>MP4 • AVI • MOV</p>
 
             </div>
 
@@ -100,23 +98,31 @@ export default function VideoUpload() {
 
                 <div className="upload-status">
 
-                    <FaCheckCircle
-                        color="green"
-                    />
+                    <FaCheckCircle color="green" />
 
-                    <span>
+                    <p>{message}</p>
 
-                        {message}
+                    <strong>{selectedFile.name}</strong>
 
-                    </span>
+                    {
 
-                    <br /><br />
+                        analysis &&
 
-                    <strong>
+                        <div style={{ marginTop: "20px" }}>
 
-                        {selectedFile.name}
+                            <h4>Analysis Result</h4>
 
-                    </strong>
+                            <p>Frames Processed: {analysis.frames_processed}</p>
+
+                            <p>Pose Frames: {analysis.pose_detected_frames}</p>
+
+                            <p>Average Knee Angle: {analysis.average_knee_angle}°</p>
+
+                            <p>Risk: {analysis.injury_risk}</p>
+
+                        </div>
+
+                    }
 
                 </div>
 
