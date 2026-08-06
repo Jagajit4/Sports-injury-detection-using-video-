@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 
 export default function Login() {
@@ -17,22 +17,51 @@ export default function Login() {
 
             const response = await api.post("/auth/login", {
                 email,
-                password,
+                password
             });
 
-            // Save JWT
             localStorage.setItem(
                 "token",
                 response.data.access_token
             );
 
-            alert("Login Successful!");
+            localStorage.setItem(
+                "role",
+                response.data.role
+            );
 
-            navigate("/dashboard");
+            switch (response.data.role) {
 
-        } catch (error) {
+                case "Athlete":
+                    navigate("/dashboard");
+                    break;
 
-            alert("Invalid email or password");
+                case "Coach":
+                    navigate("/coach");
+                    break;
+
+                case "Physiotherapist":
+                    navigate("/physio");
+                    break;
+
+                case "Sports Scientist":
+                    navigate("/scientist");
+                    break;
+
+                case "Admin":
+                    navigate("/admin");
+                    break;
+
+                default:
+                    navigate("/dashboard");
+
+            }
+
+        }
+
+        catch (err) {
+
+            alert("Invalid Email or Password");
 
         }
 
@@ -50,19 +79,35 @@ export default function Login() {
                     type="email"
                     placeholder="Email"
                     onChange={(e)=>setEmail(e.target.value)}
+                    required
                 />
 
                 <input
                     type="password"
                     placeholder="Password"
                     onChange={(e)=>setPassword(e.target.value)}
+                    required
                 />
 
                 <button type="submit">
+
                     Login
+
                 </button>
 
             </form>
+
+            <p style={{marginTop:"20px"}}>
+
+                Don't have an account?
+
+                <Link to="/register">
+
+                    {" "}Register
+
+                </Link>
+
+            </p>
 
         </div>
 

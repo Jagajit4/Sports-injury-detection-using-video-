@@ -17,11 +17,11 @@ router = APIRouter(
 security = HTTPBearer()
 
 UPLOAD_FOLDER = "uploads"
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 def get_current_user(token: str, db: Session):
+
     payload = verify_token(token)
 
     if payload is None:
@@ -66,13 +66,32 @@ def upload_video(
     analysis = process_video(filepath)
 
     video = models.Video(
+
         filename=file.filename,
         filepath=filepath,
         owner_id=user.id,
+
         frames_processed=analysis["frames_processed"],
         pose_detected_frames=analysis["pose_detected_frames"],
-        average_knee_angle=analysis["average_knee_angle"],
-        injury_risk=analysis["injury_risk"]
+
+        left_knee_angle=analysis["left_knee_angle"],
+        right_knee_angle=analysis["right_knee_angle"],
+
+        left_hip_angle=analysis["left_hip_angle"],
+        right_hip_angle=analysis["right_hip_angle"],
+
+        left_shoulder_angle=analysis["left_shoulder_angle"],
+        right_shoulder_angle=analysis["right_shoulder_angle"],
+
+        left_elbow_angle=analysis["left_elbow_angle"],
+        right_elbow_angle=analysis["right_elbow_angle"],
+
+        posture_symmetry=analysis["posture_symmetry"],
+        movement_quality=analysis["movement_quality"],
+
+        injury_risk=analysis["injury_risk"],
+        recommendation=analysis["recommendation"]
+
     )
 
     db.add(video)
@@ -87,30 +106,41 @@ def upload_video(
 
 @router.get("/my-videos")
 def my_videos(
+
     credentials: HTTPAuthorizationCredentials = Depends(security),
+
     db: Session = Depends(get_db)
+
 ):
 
     user = get_current_user(
+
         credentials.credentials,
+
         db
+
     )
 
     videos = db.query(models.Video).filter(
+
         models.Video.owner_id == user.id
+
     ).all()
 
-    result = []
+    results = []
 
     for video in videos:
 
-        result.append({
+        average_knee = round(
+            (video.left_knee_angle + video.right_knee_angle) / 2,
+            2
+        )
+
+        results.append({
 
             "id": video.id,
 
             "filename": video.filename,
-
-            "filepath": video.filepath,
 
             "analysis": {
 
@@ -118,12 +148,30 @@ def my_videos(
 
                 "pose_detected_frames": video.pose_detected_frames,
 
-                "average_knee_angle": video.average_knee_angle,
+                "average_knee_angle": average_knee,
 
-                "injury_risk": video.injury_risk
+                "left_knee_angle": video.left_knee_angle,
+                "right_knee_angle": video.right_knee_angle,
+
+                "left_hip_angle": video.left_hip_angle,
+                "right_hip_angle": video.right_hip_angle,
+
+                "left_shoulder_angle": video.left_shoulder_angle,
+                "right_shoulder_angle": video.right_shoulder_angle,
+
+                "left_elbow_angle": video.left_elbow_angle,
+                "right_elbow_angle": video.right_elbow_angle,
+
+                "posture_symmetry": video.posture_symmetry,
+
+                "movement_quality": video.movement_quality,
+
+                "injury_risk": video.injury_risk,
+
+                "recommendation": video.recommendation
 
             }
 
         })
 
-    return result
+    return results

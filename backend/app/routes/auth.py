@@ -15,9 +15,9 @@ router = APIRouter(
 security = HTTPBearer()
 
 
-# ----------------------------
+# ----------------------------------------------------
 # Register User
-# ----------------------------
+# ----------------------------------------------------
 @router.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
@@ -38,6 +38,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         hashed_password=hashed_pwd,
 
+        role=user.role,
+
         age=user.age,
         gender=user.gender,
         height=user.height,
@@ -53,17 +55,20 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
-# ----------------------------
+# ----------------------------------------------------
 # Login
-# ----------------------------
-@router.post("/login", response_model=schemas.Token)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+# ----------------------------------------------------
+@router.post("/login")
+def login(
+    user: schemas.UserLogin,
+    db: Session = Depends(get_db)
+):
 
     db_user = db.query(models.User).filter(
         models.User.email == user.email
     ).first()
 
-    if not db_user:
+    if db_user is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
@@ -86,13 +91,15 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     return {
         "access_token": token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "role": db_user.role,
+        "username": db_user.username
     }
 
 
-# ----------------------------
-# Get Current User
-# ----------------------------
+# ----------------------------------------------------
+# Current Logged-in User
+# ----------------------------------------------------
 @router.get("/me")
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -118,8 +125,11 @@ def get_current_user(
         )
 
     return {
+        "id": user.id,
         "username": user.username,
         "email": user.email,
+        "role": user.role,
+
         "age": user.age,
         "gender": user.gender,
         "height": user.height,
@@ -129,9 +139,9 @@ def get_current_user(
     }
 
 
-# ----------------------------
+# ----------------------------------------------------
 # Update Athlete Profile
-# ----------------------------
+# ----------------------------------------------------
 @router.put("/profile")
 def update_profile(
     profile: schemas.ProfileUpdate,
@@ -172,6 +182,8 @@ def update_profile(
         "profile": {
             "username": user.username,
             "email": user.email,
+            "role": user.role,
+
             "age": user.age,
             "gender": user.gender,
             "height": user.height,

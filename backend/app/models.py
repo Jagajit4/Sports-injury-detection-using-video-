@@ -15,6 +15,8 @@ class User(Base):
 
     hashed_password = Column(String, nullable=False)
 
+    role = Column(String, nullable=False, default="Athlete")
+
     age = Column(Integer, nullable=True)
 
     gender = Column(String, nullable=True)
@@ -45,8 +47,28 @@ class Video(Base):
 
     pose_detected_frames = Column(Integer, default=0)
 
-    average_knee_angle = Column(Float, default=0)
+    # Knee
+    left_knee_angle = Column(Float, default=0)
+    right_knee_angle = Column(Float, default=0)
+
+    # Hip
+    left_hip_angle = Column(Float, default=0)
+    right_hip_angle = Column(Float, default=0)
+
+    # Shoulder
+    left_shoulder_angle = Column(Float, default=0)
+    right_shoulder_angle = Column(Float, default=0)
+
+    # Elbow
+    left_elbow_angle = Column(Float, default=0)
+    right_elbow_angle = Column(Float, default=0)
+
+    posture_symmetry = Column(Float, default=0)
+
+    movement_quality = Column(String, default="Unknown")
 
     injury_risk = Column(String, default="Unknown")
+
+    recommendation = Column(String, default="")
 
     owner = relationship("User", back_populates="videos")
