@@ -3,7 +3,11 @@ import {
     FaUserCircle,
     FaSignOutAlt,
     FaTachometerAlt,
-    FaVideo
+    FaVideo,
+    FaUsers,
+    FaHeartbeat,
+    FaFlask,
+    FaUserShield
 } from "react-icons/fa";
 
 export default function Navbar() {
@@ -11,12 +15,37 @@ export default function Navbar() {
     const navigate = useNavigate();
 
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
     function logout() {
 
         localStorage.removeItem("token");
+        localStorage.removeItem("role");
 
         navigate("/login");
+
+    }
+
+    function getDashboardLink() {
+
+        switch (role) {
+
+            case "Coach":
+                return "/coach";
+
+            case "Physiotherapist":
+                return "/physio";
+
+            case "Sports Scientist":
+                return "/scientist";
+
+            case "Admin":
+                return "/admin";
+
+            default:
+                return "/dashboard";
+
+        }
 
     }
 
@@ -25,7 +54,9 @@ export default function Navbar() {
         <nav className="navbar">
 
             <h2 className="logo">
+
                 Sports Injury Detection
+
             </h2>
 
             {
@@ -34,27 +65,101 @@ export default function Navbar() {
 
                 <div className="nav-links">
 
-                    <Link to="/dashboard">
+                    <Link to={getDashboardLink()}>
+
                         <FaTachometerAlt />
+
                         Dashboard
+
                     </Link>
 
-                    <Link to="/upload">
-                        <FaVideo />
-                        Upload Video
-                    </Link>
+                    {
+
+                        role === "Athlete" &&
+
+                        <Link to="/upload">
+
+                            <FaVideo />
+
+                            Upload
+
+                        </Link>
+
+                    }
+
+                    {
+
+                        role === "Coach" &&
+
+                        <Link to="/coach">
+
+                            <FaUsers />
+
+                            Team
+
+                        </Link>
+
+                    }
+
+                    {
+
+                        role === "Physiotherapist" &&
+
+                        <Link to="/physio">
+
+                            <FaHeartbeat />
+
+                            Recovery
+
+                        </Link>
+
+                    }
+
+                    {
+
+                        role === "Sports Scientist" &&
+
+                        <Link to="/scientist">
+
+                            <FaFlask />
+
+                            Research
+
+                        </Link>
+
+                    }
+
+                    {
+
+                        role === "Admin" &&
+
+                        <Link to="/admin">
+
+                            <FaUserShield />
+
+                            Admin
+
+                        </Link>
+
+                    }
 
                     <Link to="/profile">
+
                         <FaUserCircle />
+
                         Profile
+
                     </Link>
 
                     <button
                         className="logout-btn"
                         onClick={logout}
                     >
+
                         <FaSignOutAlt />
+
                         Logout
+
                     </button>
 
                 </div>

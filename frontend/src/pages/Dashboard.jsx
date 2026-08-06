@@ -8,14 +8,17 @@ export default function Dashboard() {
 
     const [user, setUser] = useState({});
     const [videos, setVideos] = useState([]);
+    const [latestAnalysis, setLatestAnalysis] = useState(null);
 
     useEffect(() => {
         loadDashboard();
     }, []);
 
     async function loadDashboard() {
-        await getUser();
-        await getVideos();
+        await Promise.all([
+            getUser(),
+            getVideos()
+        ]);
     }
 
     async function getUser() {
@@ -32,9 +35,7 @@ export default function Dashboard() {
 
             setUser(response.data);
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.log(err);
 
@@ -48,19 +49,33 @@ export default function Dashboard() {
 
             const token = localStorage.getItem("token");
 
-            const response = await api.get("/video/my-videos", {
-
-                headers: {
-                    Authorization: `Bearer ${token}`
+            const response = await api.get(
+                "/video/my-videos",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
+            );
 
-            });
+            // ⭐ Flatten backend response
+            const formattedVideos = response.data.map(video => ({
+                id: video.id,
+                filename: video.filename,
+                ...(video.analysis || {})
+            }));
 
-            setVideos(response.data);
+            setVideos(formattedVideos);
 
-        }
+            if (formattedVideos.length > 0) {
+                setLatestAnalysis(
+                    formattedVideos[formattedVideos.length - 1]
+                );
+            } else {
+                setLatestAnalysis(null);
+            }
 
-        catch (err) {
+        } catch (err) {
 
             console.log(err);
 
@@ -68,10 +83,21 @@ export default function Dashboard() {
 
     }
 
+    async function handleUploadSuccess(analysis) {
+
+        setLatestAnalysis({
+            ...analysis
+        });
+
+        await getVideos();
+
+    }
+
     const latestVideo =
-        videos.length > 0
+        latestAnalysis ||
+        (videos.length > 0
             ? videos[videos.length - 1]
-            : null;
+            : null);
 
     return (
 
@@ -81,20 +107,17 @@ export default function Dashboard() {
 
                 <div>
 
-                    <h1>Welcome back, {user.username} 👋</h1>
+                    <h1>
+                        Welcome back, {user.username || "Athlete"} 👋
+                    </h1>
 
                     <p>
-
-                        Upload training videos and let AI analyze
-                        your posture, knee movement and injury risk.
-
+                        Upload your training videos and let AI analyze your biomechanics, posture and injury risk.
                     </p>
 
                     <h3>
-
                         Sport :
-                        <span> {user.sport || "Athlete"}</span>
-
+                        <span> {user.sport || "Not Updated"}</span>
                     </h3>
 
                 </div>
@@ -102,8 +125,6 @@ export default function Dashboard() {
                 <FaUserCircle className="profile-icon" />
 
             </div>
-
-
 
             <div className="stats">
 
@@ -121,7 +142,12 @@ export default function Dashboard() {
 
                         {
                             latestVideo
-                                ? latestVideo.analysis.average_knee_angle.toFixed(1)
+                                ? (
+                                    (
+                                        Number(latestVideo.left_knee_angle || 0) +
+                                        Number(latestVideo.right_knee_angle || 0)
+                                    ) / 2
+                                ).toFixed(1)
                                 : "--"
                         }°
 
@@ -137,7 +163,7 @@ export default function Dashboard() {
 
                         {
                             latestVideo
-                                ? latestVideo.analysis.injury_risk
+                                ? latestVideo.injury_risk
                                 : "--"
                         }
 
@@ -149,48 +175,67 @@ export default function Dashboard() {
 
             </div>
 
-
-
             <div className="middle-section">
 
-                <div className="upload-card">
-
-                    <h2>Upload Training Video</h2>
-
-                    <p>
-
-                        Upload your latest athlete movement
-                        video for AI-powered posture analysis.
-
-                    </p>
-
-                    <VideoUpload />
-
-                </div>
+                
 
                 <div className="tips-card">
 
-                    <h2>AI Recommendations</h2>
+                    <h2>Latest Analysis</h2>
 
-                    <ul>
+                    {
+                        latestVideo ?
 
-                        <li>✔ Warm up before every training session.</li>
+                        <>
 
-                        <li>✔ Keep knees aligned while landing.</li>
+                            <p><strong>Frames Processed:</strong> {latestVideo.frames_processed}</p>
 
-                        <li>✔ Avoid excessive inward knee movement.</li>
+                            <p><strong>Pose Frames:</strong> {latestVideo.pose_detected_frames}</p>
 
-                        <li>✔ Maintain balanced posture.</li>
+                            <hr />
 
-                        <li>✔ Take sufficient recovery time.</li>
+                            <p><strong>Left Knee:</strong> {Number(latestVideo.left_knee_angle || 0).toFixed(1)}°</p>
 
-                    </ul>
+                            <p><strong>Right Knee:</strong> {Number(latestVideo.right_knee_angle || 0).toFixed(1)}°</p>
+
+                            <p><strong>Left Hip:</strong> {Number(latestVideo.left_hip_angle || 0).toFixed(1)}°</p>
+
+                            <p><strong>Right Hip:</strong> {Number(latestVideo.right_hip_angle || 0).toFixed(1)}°</p>
+
+                            <p><strong>Left Shoulder:</strong> {Number(latestVideo.left_shoulder_angle || 0).toFixed(1)}°</p>
+
+                            <p><strong>Right Shoulder:</strong> {Number(latestVideo.right_shoulder_angle || 0).toFixed(1)}°</p>
+
+                            <p><strong>Left Elbow:</strong> {Number(latestVideo.left_elbow_angle || 0).toFixed(1)}°</p>
+
+                            <p><strong>Right Elbow:</strong> {Number(latestVideo.right_elbow_angle || 0).toFixed(1)}°</p>
+
+                            <hr />
+
+                            <p><strong>Posture Symmetry:</strong> {Number(latestVideo.posture_symmetry || 0).toFixed(1)}%</p>
+
+                            <p><strong>Movement Quality:</strong> {latestVideo.movement_quality}</p>
+
+                            <p><strong>Injury Risk:</strong> {latestVideo.injury_risk}</p>
+
+                            <hr />
+
+                            <p><strong>AI Recommendation</strong></p>
+
+                            <p>{latestVideo.recommendation}</p>
+
+                        </>
+
+                        :
+
+                        <p>
+                            Analyze a video to view the results here.
+                        </p>
+                    }
 
                 </div>
 
             </div>
-
-
 
             <div className="recent-card">
 
@@ -200,7 +245,7 @@ export default function Dashboard() {
 
                     videos.length === 0 ?
 
-                        <p>No videos uploaded.</p>
+                        <p>No videos uploaded yet.</p>
 
                         :
 
@@ -209,17 +254,14 @@ export default function Dashboard() {
                             <thead>
 
                                 <tr>
-
                                     <th>Video</th>
-
-                                    <th>Frames</th>
-
-                                    <th>Pose Frames</th>
-
-                                    <th>Knee Angle</th>
-
+                                    <th>Knee (L/R)</th>
+                                    <th>Hip (L/R)</th>
+                                    <th>Shoulder (L/R)</th>
+                                    <th>Elbow (L/R)</th>
+                                    <th>Symmetry</th>
+                                    <th>Movement</th>
                                     <th>Risk</th>
-
                                 </tr>
 
                             </thead>
@@ -234,21 +276,27 @@ export default function Dashboard() {
 
                                             <td>{video.filename}</td>
 
-                                            <td>{video.analysis.frames_processed}</td>
-
-                                            <td>{video.analysis.pose_detected_frames}</td>
-
                                             <td>
-
-                                                {video.analysis.average_knee_angle.toFixed(2)}°
-
+                                                {Number(video.left_knee_angle || 0).toFixed(1)}° / {Number(video.right_knee_angle || 0).toFixed(1)}°
                                             </td>
 
                                             <td>
-
-                                                {video.analysis.injury_risk}
-
+                                                {Number(video.left_hip_angle || 0).toFixed(1)}° / {Number(video.right_hip_angle || 0).toFixed(1)}°
                                             </td>
+
+                                            <td>
+                                                {Number(video.left_shoulder_angle || 0).toFixed(1)}° / {Number(video.right_shoulder_angle || 0).toFixed(1)}°
+                                            </td>
+
+                                            <td>
+                                                {Number(video.left_elbow_angle || 0).toFixed(1)}° / {Number(video.right_elbow_angle || 0).toFixed(1)}°
+                                            </td>
+
+                                            <td>{Number(video.posture_symmetry || 0).toFixed(1)}%</td>
+
+                                            <td>{video.movement_quality}</td>
+
+                                            <td>{video.injury_risk}</td>
 
                                         </tr>
 
