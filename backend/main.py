@@ -1,20 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .routes import auth
+from .routes import video
+from .routes import admin
+
 from .database import engine
 from . import models
 
-from .routes import auth
-from .routes import video
 
 app = FastAPI(
-    title="Sports Injury Detection API",
-    version="1.0"
+    title="Sports Injury Detection API"
 )
 
-# -----------------------------
+
+# ============================================================
 # CORS
-# -----------------------------
+# ============================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,34 +29,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -----------------------------
-# Database
-# -----------------------------
+
+# ============================================================
+# DATABASE
+# ============================================================
 
 models.Base.metadata.create_all(bind=engine)
 
-# -----------------------------
-# Routers
-# -----------------------------
+
+# ============================================================
+# REGISTER API ROUTES
+# ============================================================
 
 app.include_router(auth.router)
 app.include_router(video.router)
+app.include_router(admin.router)
 
-# -----------------------------
-# Home
-# -----------------------------
+
+# ============================================================
+# BASIC ROUTES
+# ============================================================
 
 @app.get("/")
 def home():
 
     return {
-
         "project": "Sports Injury Risk Detection",
-
-        "version": "Milestone 3",
-
-        "status": "Running"
-
+        "status": "Backend is running successfully!"
     }
 
 
@@ -62,7 +63,5 @@ def home():
 def health():
 
     return {
-
         "status": "healthy"
-
     }

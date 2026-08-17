@@ -12,10 +12,12 @@ import UploadVideo from "./pages/UploadVideo";
 
 import CoachDashboard from "./pages/CoachDashboard";
 import PhysioDashboard from "./pages/PhysioDashboard";
-import ScientistDashboard from "./pages/ScientistDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
+import SupportTeam from "./pages/SupportTeam";
+
 import NotFound from "./pages/NotFound";
+
 
 function App() {
 
@@ -25,76 +27,167 @@ function App() {
 
             <Navbar />
 
+
             <Routes>
 
-                <Route path="/" element={<Landing />} />
+                {/* ==================================================
+                    PUBLIC ROUTES
+                ================================================== */}
 
-                <Route path="/register" element={<Register />} />
+                <Route
+                    path="/"
+                    element={<Landing />}
+                />
 
-                <Route path="/login" element={<Login />} />
+
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
+
+
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
+
+
+                {/* ==================================================
+                    ATHLETE
+                ================================================== */}
 
                 <Route
                     path="/dashboard"
                     element={
-                        <ProtectedRoute>
+
+                        <ProtectedRoute
+                            allowedRoles={["Athlete"]}
+                        >
+
                             <Dashboard />
+
                         </ProtectedRoute>
+
                     }
                 />
 
-                <Route
-                    path="/coach"
-                    element={
-                        <ProtectedRoute>
-                            <CoachDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/physio"
-                    element={
-                        <ProtectedRoute>
-                            <PhysioDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/scientist"
-                    element={
-                        <ProtectedRoute>
-                            <ScientistDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute>
-                            <AdminDashboard />
-                        </ProtectedRoute>
-                    }
-                />
 
                 <Route
                     path="/profile"
                     element={
-                        <ProtectedRoute>
+
+                        <ProtectedRoute
+                            allowedRoles={[
+                                "Athlete",
+                                "Coach",
+                                "Physiotherapist",
+                                "Admin"
+                            ]}
+                        >
+
                             <Profile />
+
                         </ProtectedRoute>
+
                     }
                 />
+
 
                 <Route
                     path="/upload"
                     element={
-                        <ProtectedRoute>
+
+                        <ProtectedRoute
+                            allowedRoles={["Athlete"]}
+                        >
+
                             <UploadVideo />
+
                         </ProtectedRoute>
+
                     }
                 />
+
+
+                <Route
+                    path="/support-team"
+                    element={
+
+                        <ProtectedRoute
+                            allowedRoles={["Athlete"]}
+                        >
+
+                            <SupportTeam />
+
+                        </ProtectedRoute>
+
+                    }
+                />
+
+
+                {/* ==================================================
+                    COACH
+                ================================================== */}
+
+                <Route
+                    path="/coach"
+                    element={
+
+                        <ProtectedRoute
+                            allowedRoles={["Coach"]}
+                        >
+
+                            <CoachDashboard />
+
+                        </ProtectedRoute>
+
+                    }
+                />
+
+
+                {/* ==================================================
+                    PHYSIOTHERAPIST
+                ================================================== */}
+
+                <Route
+                    path="/physio"
+                    element={
+
+                        <ProtectedRoute
+                            allowedRoles={["Physiotherapist"]}
+                        >
+
+                            <PhysioDashboard />
+
+                        </ProtectedRoute>
+
+                    }
+                />
+
+
+                {/* ==================================================
+                    ADMIN
+                ================================================== */}
+
+                <Route
+                    path="/admin"
+                    element={
+
+                        <ProtectedRoute
+                            allowedRoles={["Admin"]}
+                        >
+
+                            <AdminDashboard />
+
+                        </ProtectedRoute>
+
+                    }
+                />
+
+
+                {/* ==================================================
+                    404
+                ================================================== */}
 
                 <Route
                     path="*"
@@ -108,5 +201,6 @@ function App() {
     );
 
 }
+
 
 export default App;

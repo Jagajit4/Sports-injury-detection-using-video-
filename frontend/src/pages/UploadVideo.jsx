@@ -1,33 +1,29 @@
 import VideoUpload from "../components/VideoUpload";
+import "../styles/upload.css";
 
-export default function UploadVideo(){
+export default function UploadVideo() {
+    return (
+        <main className="upload-page">
+            <section className="upload-container">
 
-    return(
+                <div className="upload-header">
+                    <span className="upload-label">
+                        ATHLETE PORTAL
+                    </span>
 
-        <div
-            style={{
-                maxWidth:"900px",
-                margin:"40px auto",
-                padding:"30px"
-            }}
-        >
+                    <h1>
+                        Upload Training Video
+                    </h1>
 
-            <h1>
+                    <p>
+                        Upload a movement video to evaluate your
+                        biomechanics and identify potential injury risks.
+                    </p>
+                </div>
 
-                Upload Training Video
+                <VideoUpload />
 
-            </h1>
-
-            <p>
-
-                Upload an athlete movement video for AI biomechanical analysis.
-
-            </p>
-
-            <VideoUpload/>
-
-        </div>
-
+            </section>
+        </main>
     );
-
 }

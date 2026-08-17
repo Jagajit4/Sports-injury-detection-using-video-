@@ -1,14 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import {
-    FaUserCircle,
-    FaSignOutAlt,
-    FaTachometerAlt,
-    FaVideo,
-    FaUsers,
-    FaHeartbeat,
-    FaFlask,
-    FaUserShield
-} from "react-icons/fa";
 
 export default function Navbar() {
 
@@ -16,19 +6,23 @@ export default function Navbar() {
 
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
+    const username = localStorage.getItem("username");
 
-    function logout() {
+    function handleLogout() {
 
         localStorage.removeItem("token");
         localStorage.removeItem("role");
+        localStorage.removeItem("username");
 
         navigate("/login");
-
     }
 
-    function getDashboardLink() {
+    function getDashboardPath() {
 
         switch (role) {
+
+            case "Athlete":
+                return "/dashboard";
 
             case "Coach":
                 return "/coach";
@@ -36,135 +30,210 @@ export default function Navbar() {
             case "Physiotherapist":
                 return "/physio";
 
-            case "Sports Scientist":
-                return "/scientist";
-
             case "Admin":
                 return "/admin";
 
             default:
-                return "/dashboard";
-
+                return "/";
         }
-
     }
 
     return (
 
-        <nav className="navbar">
+        <nav
+            style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "15px 30px",
+                backgroundColor: "#ffffff",
+                borderBottom: "1px solid #e5e7eb",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                position: "sticky",
+                top: 0,
+                zIndex: 1000
+            }}
+        >
 
-            <h2 className="logo">
+            {/* =====================================================
+                BRAND
+            ====================================================== */}
 
+            <Link
+                to="/"
+                style={{
+                    textDecoration: "none",
+                    fontSize: "21px",
+                    fontWeight: "700",
+                    color: "#1f2937"
+                }}
+            >
                 Sports Injury Detection
+            </Link>
 
-            </h2>
 
-            {
+            {/* =====================================================
+                NAVIGATION
+            ====================================================== */}
 
-                token &&
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "20px"
+                }}
+            >
 
-                <div className="nav-links">
+                {/* HOME */}
 
-                    <Link to={getDashboardLink()}>
+                <Link
+                    to="/"
+                    style={{
+                        textDecoration: "none",
+                        color: "#374151",
+                        fontWeight: "500"
+                    }}
+                >
+                    Home
+                </Link>
 
-                        <FaTachometerAlt />
 
-                        Dashboard
+                {/* LOGGED-IN USER NAVIGATION */}
 
-                    </Link>
+                {token && role && (
 
-                    {
+                    <>
 
-                        role === "Athlete" &&
-
-                        <Link to="/upload">
-
-                            <FaVideo />
-
-                            Upload
-
+                        <Link
+                            to={getDashboardPath()}
+                            style={{
+                                textDecoration: "none",
+                                color: "#374151",
+                                fontWeight: "500"
+                            }}
+                        >
+                            Dashboard
                         </Link>
 
-                    }
 
-                    {
-
-                        role === "Coach" &&
-
-                        <Link to="/coach">
-
-                            <FaUsers />
-
-                            Team
-
+                        <Link
+                            to="/profile"
+                            style={{
+                                textDecoration: "none",
+                                color: "#374151",
+                                fontWeight: "500"
+                            }}
+                        >
+                            Profile
                         </Link>
 
-                    }
 
-                    {
+                        {/* ATHLETE ONLY */}
 
-                        role === "Physiotherapist" &&
+                        {role === "Athlete" && (
 
-                        <Link to="/physio">
+                            <>
 
-                            <FaHeartbeat />
+                                <Link
+                                    to="/upload"
+                                    style={{
+                                        textDecoration: "none",
+                                        color: "#374151",
+                                        fontWeight: "500"
+                                    }}
+                                >
+                                    Upload Video
+                                </Link>
 
-                            Recovery
 
+                                <Link
+                                    to="/support-team"
+                                    style={{
+                                        textDecoration: "none",
+                                        color: "#374151",
+                                        fontWeight: "500"
+                                    }}
+                                >
+                                    Support Team
+                                </Link>
+
+                            </>
+
+                        )}
+
+
+                        {/* USER INFORMATION */}
+
+                        <span
+                            style={{
+                                color: "#6b7280",
+                                fontSize: "14px"
+                            }}
+                        >
+                            {username || role}
+                        </span>
+
+
+                        {/* LOGOUT */}
+
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            style={{
+                                padding: "8px 14px",
+                                border: "none",
+                                borderRadius: "6px",
+                                backgroundColor: "#dc2626",
+                                color: "#ffffff",
+                                cursor: "pointer",
+                                fontWeight: "600"
+                            }}
+                        >
+                            Logout
+                        </button>
+
+                    </>
+
+                )}
+
+
+                {/* NOT LOGGED IN */}
+
+                {!token && (
+
+                    <>
+
+                        <Link
+                            to="/login"
+                            style={{
+                                textDecoration: "none",
+                                color: "#374151",
+                                fontWeight: "500"
+                            }}
+                        >
+                            Login
                         </Link>
 
-                    }
 
-                    {
-
-                        role === "Sports Scientist" &&
-
-                        <Link to="/scientist">
-
-                            <FaFlask />
-
-                            Research
-
+                        <Link
+                            to="/register"
+                            style={{
+                                textDecoration: "none",
+                                color: "#ffffff",
+                                backgroundColor: "#2563eb",
+                                padding: "8px 14px",
+                                borderRadius: "6px",
+                                fontWeight: "600"
+                            }}
+                        >
+                            Register
                         </Link>
 
-                    }
+                    </>
 
-                    {
+                )}
 
-                        role === "Admin" &&
-
-                        <Link to="/admin">
-
-                            <FaUserShield />
-
-                            Admin
-
-                        </Link>
-
-                    }
-
-                    <Link to="/profile">
-
-                        <FaUserCircle />
-
-                        Profile
-
-                    </Link>
-
-                    <button
-                        className="logout-btn"
-                        onClick={logout}
-                    >
-
-                        <FaSignOutAlt />
-
-                        Logout
-
-                    </button>
-
-                </div>
-
-            }
+            </div>
 
         </nav>
 
