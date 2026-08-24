@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 export default function Register() {
-
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
@@ -15,175 +14,156 @@ export default function Register() {
 
     const [loading, setLoading] = useState(false);
     const [registered, setRegistered] = useState(false);
+    const [error, setError] = useState("");
 
     function handleChange(e) {
-
         setForm({
             ...form,
             [e.target.name]: e.target.value
         });
 
+        setError("");
     }
 
     async function handleRegister(e) {
-
         e.preventDefault();
 
         setLoading(true);
+        setError("");
 
         try {
-
             await api.post("/auth/register", form);
 
             setRegistered(true);
-
-        }
-
-        catch (error) {
-
-            console.log(error);
+        } catch (error) {
+            console.error("Registration error:", error);
 
             if (error.response) {
-
-                alert(error.response.data.detail);
-
+                setError(
+                    error.response.data?.detail ||
+                    "Registration failed."
+                );
             } else {
-
-                alert("Unable to connect to server.");
-
+                setError(
+                    "Unable to connect to server."
+                );
             }
-
+        } finally {
+            setLoading(false);
         }
-
-        setLoading(false);
-
     }
 
     return (
-
         <div className="form-container">
 
             <h2>Create Account</h2>
 
-            {
+            {registered ? (
+                <>
+                    <h3 style={{ color: "green" }}>
+                        Registration Successful
+                    </h3>
 
-                registered ?
+                    <p>
+                        Your account has been created successfully.
+                    </p>
 
-                    <>
+                    <button
+                        type="button"
+                        onClick={() => navigate("/login")}
+                    >
+                        Go to Login
+                    </button>
+                </>
+            ) : (
+                <form onSubmit={handleRegister}>
 
-                        <h3 style={{ color: "green" }}>
-                            Registration Successful 🎉
-                        </h3>
-
-                        <p>
-                            Your account has been created successfully.
-                        </p>
-
-                        <button
-                            onClick={() => navigate("/login")}
-                        >
-                            Go to Login
-                        </button>
-
-                    </>
-
-                    :
-
-                    <form onSubmit={handleRegister}>
-
-                        <input
-                            type="text"
-                            name="username"
-                            placeholder="Username"
-                            value={form.username}
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <select
-                            name="role"
-                            value={form.role}
-                            onChange={handleChange}
-                        >
-
-                            <option value="Athlete">
-                                Athlete
-                            </option>
-
-                            <option value="Coach">
-                                Coach
-                            </option>
-
-                            <option value="Physiotherapist">
-                                Physiotherapist
-                            </option>
-
-                            <option value="Sports Scientist">
-                                Sports Scientist
-                            </option>
-
-                        </select>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                        >
-
-                            {
-
-                                loading ?
-
-                                    "Registering..."
-
-                                    :
-
-                                    "Register"
-
-                            }
-
-                        </button>
-
-                        <p
+                    {error && (
+                        <div
                             style={{
-                                marginTop: "20px",
-                                textAlign: "center"
+                                color: "#b91c1c",
+                                backgroundColor: "#fee2e2",
+                                padding: "10px",
+                                borderRadius: "6px",
+                                marginBottom: "15px"
                             }}
                         >
+                            {error}
+                        </div>
+                    )}
 
-                            Already have an account?
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="Username"
+                        value={form.username}
+                        onChange={handleChange}
+                        required
+                    />
 
-                            <Link to="/login">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                    />
 
-                                {" "}Login
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={form.password}
+                        onChange={handleChange}
+                        minLength={6}
+                        required
+                    />
 
-                            </Link>
+                    <select
+                        name="role"
+                        value={form.role}
+                        onChange={handleChange}
+                        required
+                    >
+                        <option value="Athlete">
+                            Athlete
+                        </option>
 
-                        </p>
+                        <option value="Coach">
+                            Coach
+                        </option>
 
-                    </form>
+                        <option value="Physiotherapist">
+                            Physiotherapist
+                        </option>
+                    </select>
 
-            }
+                    <button
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading
+                            ? "Registering..."
+                            : "Register"}
+                    </button>
+
+                    <p
+                        style={{
+                            marginTop: "20px",
+                            textAlign: "center"
+                        }}
+                    >
+                        Already have an account?
+
+                        <Link to="/login">
+                            {" "}Login
+                        </Link>
+                    </p>
+
+                </form>
+            )}
 
         </div>
-
     );
-
 }

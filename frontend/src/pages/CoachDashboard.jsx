@@ -1,335 +1,968 @@
 import { useEffect, useState } from "react";
+
 import {
     FaUsers,
+    FaUserClock,
+    FaCheckCircle,
+    FaTimesCircle,
     FaRunning,
-    FaExclamationTriangle,
-    FaChartLine,
-    FaHeartbeat
+    FaHeartbeat,
+    FaChartLine
 } from "react-icons/fa";
+
 import api from "../services/api";
+import "../styles/dashboard.css";
+
 
 export default function CoachDashboard() {
 
-    const [team, setTeam] = useState([]);
+    const [athletes, setAthletes] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [latestAnalyses, setLatestAnalyses] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
+    const [processingRequest, setProcessingRequest] = useState(null);
+
 
     useEffect(() => {
-        loadTeam();
+
+        loadDashboard();
+
     }, []);
 
-    async function loadTeam() {
+
+    /*
+     * If the page is opened through /coach#athletes,
+     * automatically scroll to the athlete section.
+     */
+
+    useEffect(() => {
+
+        if (loading) {
+            return;
+        }
+
+        const hash =
+            window.location.hash;
+
+        if (hash === "#athletes") {
+
+            setTimeout(() => {
+
+                const element =
+                    document.getElementById("athletes");
+
+                if (element) {
+
+                    element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
+                }
+
+            }, 100);
+
+        }
+
+    }, [loading]);
+
+
+    async function loadDashboard() {
 
         try {
 
-            const token = localStorage.getItem("token");
+            setLoading(true);
+            setError("");
 
-            const response = await api.get("/video/my-videos", {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const token =
+                localStorage.getItem("token");
 
-            setTeam(response.data);
+            const headers = {
+                Authorization:
+                    `Bearer ${token}`
+            };
+
+
+            const [
+                connectionsResponse,
+                requestsResponse,
+                latestResponse
+            ] = await Promise.all([
+
+                api.get(
+                    "/connections/my-connections",
+                    { headers }
+                ),
+
+                api.get(
+                    "/connections/pending",
+                    { headers }
+                ),
+
+                api.get(
+                    "/video/assigned-athletes/latest",
+                    { headers }
+                )
+
+            ]);
+
+
+            const connectionData =
+                connectionsResponse.data || {};
+
+
+            setAthletes(
+                Array.isArray(
+                    connectionData.athletes
+                )
+                    ? connectionData.athletes
+                    : []
+            );
+
+
+            setRequests(
+                Array.isArray(
+                    requestsResponse.data
+                )
+                    ? requestsResponse.data
+                    : []
+            );
+
+
+            const latestData =
+                latestResponse.data || {};
+
+
+            setLatestAnalyses(
+                Array.isArray(
+                    latestData.athletes
+                )
+                    ? latestData.athletes
+                    : []
+            );
 
         }
 
         catch (err) {
 
-            console.log(err);
+            console.error(
+                "Coach dashboard error:",
+                err
+            );
+
+            setError(
+                err.response?.data?.detail ||
+                "Unable to load coach dashboard."
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
 
         }
 
     }
 
-    const totalAthletes = team.length;
 
-    const highRisk = team.filter(
-        athlete => athlete.injury_risk === "HIGH"
-    ).length;
+    async function acceptRequest(requestId) {
 
-    const mediumRisk = team.filter(
-        athlete => athlete.injury_risk === "MEDIUM"
-    ).length;
+        try {
 
-    const lowRisk = team.filter(
-        athlete => athlete.injury_risk === "LOW"
-    ).length;
+            setProcessingRequest(requestId);
+            setMessage("");
+            setError("");
+
+            const token =
+                localStorage.getItem("token");
+
+
+            await api.put(
+                `/connections/accept/${requestId}`,
+                {},
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+            setMessage(
+                "Athlete connection accepted successfully."
+            );
+
+
+            await loadDashboard();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            setError(
+                err.response?.data?.detail ||
+                "Unable to accept request."
+            );
+
+        }
+
+        finally {
+
+            setProcessingRequest(null);
+
+        }
+
+    }
+
+
+    async function rejectRequest(requestId) {
+
+        try {
+
+            setProcessingRequest(requestId);
+            setMessage("");
+            setError("");
+
+            const token =
+                localStorage.getItem("token");
+
+
+            await api.put(
+                `/connections/reject/${requestId}`,
+                {},
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+            setMessage(
+                "Connection request rejected."
+            );
+
+
+            await loadDashboard();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            setError(
+                err.response?.data?.detail ||
+                "Unable to reject request."
+            );
+
+        }
+
+        finally {
+
+            setProcessingRequest(null);
+
+        }
+
+    }
+
+
+    function getLatestForAthlete(athleteId) {
+
+        return latestAnalyses.find(
+            item =>
+                Number(item?.athlete?.id) ===
+                Number(athleteId)
+        );
+
+    }
+
+
+    if (loading) {
+
+        return (
+
+            <div className="dashboard">
+
+                <div className="empty-analysis">
+
+                    <h2>
+                        Loading Coach Dashboard...
+                    </h2>
+
+                    <p>
+                        Retrieving athletes and connection requests.
+                    </p>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
 
     return (
 
         <div className="dashboard">
 
-            <div className="hero">
+            {/* ==================================================
+                HEADER
+            ================================================== */}
 
-                <div>
+            <section className="dashboard-hero">
+
+                <div className="hero-content">
+
+                    <p className="dashboard-label">
+                        COACH PORTAL
+                    </p>
 
                     <h1>
-
                         Coach Dashboard
-
                     </h1>
 
-                    <p>
-
-                        Team monitoring, injury prevention,
-                        movement quality and athlete performance.
-
+                    <p className="hero-description">
+                        Manage athlete connections, monitor movement
+                        analysis and review injury-risk indicators.
                     </p>
 
                 </div>
 
-            </div>
+            </section>
 
-            <div className="stats">
 
-                <div className="stat-card">
+            {/* ==================================================
+                MESSAGES
+            ================================================== */}
 
-                    <FaUsers size={35}/>
+            {message && (
 
-                    <h2>{totalAthletes}</h2>
+                <div className="support-message success">
 
-                    <p>Total Athletes</p>
+                    <FaCheckCircle />
 
-                </div>
-
-                <div className="stat-card">
-
-                    <FaHeartbeat size={35}/>
-
-                    <h2>{highRisk}</h2>
-
-                    <p>High Risk</p>
+                    <span>
+                        {message}
+                    </span>
 
                 </div>
 
-                <div className="stat-card">
+            )}
 
-                    <FaExclamationTriangle size={35}/>
 
-                    <h2>{mediumRisk}</h2>
+            {error && (
 
-                    <p>Medium Risk</p>
+                <div className="support-message error">
 
-                </div>
+                    <FaTimesCircle />
 
-                <div className="stat-card">
-
-                    <FaRunning size={35}/>
-
-                    <h2>{lowRisk}</h2>
-
-                    <p>Low Risk</p>
+                    <span>
+                        {error}
+                    </span>
 
                 </div>
 
-            </div>
+            )}
 
-            <div className="middle-section">
 
-                <div className="upload-card">
+            {/* ==================================================
+                STATISTICS
+            ================================================== */}
 
-                    <h2>
+            <section className="dashboard-section">
 
-                        Team Risk Overview
+                <div className="stats-grid">
 
-                    </h2>
+                    <div className="stat-card">
 
-                    <table>
+                        <FaUsers size={28} />
 
-                        <thead>
+                        <span className="stat-title">
+                            Connected Athletes
+                        </span>
 
-                            <tr>
+                        <strong className="stat-value">
+                            {athletes.length}
+                        </strong>
 
-                                <th>Risk Level</th>
+                        <span className="stat-description">
+                            Athletes currently assigned to you
+                        </span>
 
-                                <th>Athletes</th>
+                    </div>
 
-                            </tr>
 
-                        </thead>
+                    <div className="stat-card">
 
-                        <tbody>
+                        <FaUserClock size={28} />
 
-                            <tr>
+                        <span className="stat-title">
+                            Pending Requests
+                        </span>
 
-                                <td>High</td>
+                        <strong className="stat-value">
+                            {requests.length}
+                        </strong>
 
-                                <td>{highRisk}</td>
+                        <span className="stat-description">
+                            Athletes waiting for approval
+                        </span>
 
-                            </tr>
+                    </div>
 
-                            <tr>
 
-                                <td>Medium</td>
+                    <div className="stat-card">
 
-                                <td>{mediumRisk}</td>
+                        <FaRunning size={28} />
 
-                            </tr>
+                        <span className="stat-title">
+                            Analysed Athletes
+                        </span>
 
-                            <tr>
+                        <strong className="stat-value">
 
-                                <td>Low</td>
+                            {
+                                latestAnalyses.filter(
+                                    item =>
+                                        item?.latest_video
+                                ).length
+                            }
 
-                                <td>{lowRisk}</td>
+                        </strong>
 
-                            </tr>
+                        <span className="stat-description">
+                            Athletes with movement analysis
+                        </span>
 
-                        </tbody>
+                    </div>
 
-                    </table>
+
+                    <div className="stat-card">
+
+                        <FaHeartbeat size={28} />
+
+                        <span className="stat-title">
+                            Monitoring
+                        </span>
+
+                        <strong className="stat-value">
+                            Active
+                        </strong>
+
+                        <span className="stat-description">
+                            AI biomechanical monitoring
+                        </span>
+
+                    </div>
 
                 </div>
 
-                <div className="tips-card">
+            </section>
 
-                    <h2>
 
-                        Athlete Performance Analytics
+            {/* ==================================================
+                CONNECTION REQUESTS
+            ================================================== */}
 
-                    </h2>
+            <section className="dashboard-section">
 
-                    {
+                <div className="section-heading">
 
-                        team.length === 0 ?
+                    <div>
 
-                        <p>
-
-                            No athlete data available.
-
+                        <p className="dashboard-label">
+                            CONNECTIONS
                         </p>
 
-                        :
+                        <h2>
+                            Athlete Requests
+                        </h2>
 
-                        team.map(player => (
+                    </div>
+
+                    <span className="count-badge">
+                        {requests.length}
+                    </span>
+
+                </div>
+
+
+                {requests.length === 0 ? (
+
+                    <div className="empty-analysis">
+
+                        <FaCheckCircle size={32} />
+
+                        <h3>
+                            No pending requests
+                        </h3>
+
+                        <p>
+                            New athlete connection requests
+                            will appear here.
+                        </p>
+
+                    </div>
+
+                ) : (
+
+                    <div className="professional-grid">
+
+                        {requests.map(request => (
 
                             <div
-                                key={player.id}
-                                style={{
-                                    borderBottom:"1px solid #ddd",
-                                    paddingBottom:"12px",
-                                    marginBottom:"12px"
-                                }}
+                                className="professional-card"
+                                key={request.id}
                             >
 
-                                <strong>
+                                <div className="professional-icon">
 
-                                    {player.filename}
+                                    <FaRunning />
 
-                                </strong>
+                                </div>
 
-                                <p>
 
-                                    Movement :
+                                <div className="professional-info">
 
-                                    {" "}
+                                    <h3>
+                                        {request.athlete_name}
+                                    </h3>
 
-                                    {player.movement_quality}
+                                    <p>
+                                        {request.athlete_email}
+                                    </p>
 
-                                </p>
 
-                                <p>
+                                    {request.sport && (
 
-                                    Injury Risk :
+                                        <p>
 
-                                    {" "}
+                                            <strong>
+                                                Sport:
+                                            </strong>{" "}
 
-                                    {player.injury_risk}
+                                            {request.sport}
 
-                                </p>
+                                        </p>
+
+                                    )}
+
+
+                                    {request.experience != null && (
+
+                                        <p>
+
+                                            <strong>
+                                                Experience:
+                                            </strong>{" "}
+
+                                            {request.experience} years
+
+                                        </p>
+
+                                    )}
+
+                                </div>
+
+
+                                <div className="professional-action">
+
+                                    <button
+                                        className="request-button"
+                                        disabled={
+                                            processingRequest ===
+                                            request.id
+                                        }
+                                        onClick={() =>
+                                            acceptRequest(
+                                                request.id
+                                            )
+                                        }
+                                    >
+
+                                        <FaCheckCircle />
+
+                                        {processingRequest ===
+                                        request.id
+                                            ? "Processing..."
+                                            : "Accept"}
+
+                                    </button>
+
+
+                                    <button
+                                        className="cancel-button"
+                                        disabled={
+                                            processingRequest ===
+                                            request.id
+                                        }
+                                        onClick={() =>
+                                            rejectRequest(
+                                                request.id
+                                            )
+                                        }
+                                    >
+
+                                        <FaTimesCircle />
+
+                                        Reject
+
+                                    </button>
+
+                                </div>
 
                             </div>
 
-                        ))
+                        ))}
 
-                    }
+                    </div>
+
+                )}
+
+            </section>
+
+
+            {/* ==================================================
+                CONNECTED ATHLETES
+                IMPORTANT: id="athletes"
+            ================================================== */}
+
+            <section
+                className="dashboard-section"
+                id="athletes"
+            >
+
+                <div className="section-heading">
+
+                    <div>
+
+                        <p className="dashboard-label">
+                            YOUR TEAM
+                        </p>
+
+                        <h2>
+                            Connected Athletes
+                        </h2>
+
+                        <p className="hero-description">
+                            View athletes assigned to your coaching
+                            team and their latest movement assessment.
+                        </p>
+
+                    </div>
+
+                    <span className="count-badge">
+                        {athletes.length}
+                    </span>
 
                 </div>
 
-            </div>
-                        <div className="recent-card">
 
-                <h2>
+                {athletes.length === 0 ? (
 
-                    <FaChartLine />
+                    <div className="empty-analysis">
 
-                    {" "}Movement Quality Reports
+                        <FaUsers size={36} />
 
-                </h2>
+                        <h3>
+                            No athletes connected yet
+                        </h3>
 
-                {
+                        <p>
+                            When an athlete request is accepted,
+                            that athlete will appear here.
+                        </p>
 
-                    team.length === 0 ?
+                    </div>
 
-                    <p>
+                ) : (
 
-                        No reports available.
+                    <div className="professional-grid">
 
-                    </p>
+                        {athletes.map(athlete => {
 
-                    :
+                            const latest =
+                                getLatestForAthlete(
+                                    athlete.id
+                                );
 
-                    <table>
+                            const latestVideo =
+                                latest?.latest_video;
 
-                        <thead>
+                            const analysis =
+                                latestVideo?.analysis;
 
-                            <tr>
 
-                                <th>Video</th>
+                            return (
 
-                                <th>Movement</th>
+                                <div
+                                    className="professional-card"
+                                    key={athlete.id}
+                                >
 
-                                <th>Risk</th>
+                                    <div className="professional-icon">
 
-                                <th>Symmetry</th>
+                                        <FaRunning />
 
-                                <th>Average Knee</th>
+                                    </div>
 
-                            </tr>
 
-                        </thead>
+                                    <div className="professional-info">
 
-                        <tbody>
+                                        <h3>
+                                            {athlete.username}
+                                        </h3>
 
-                            {
+                                        <p>
+                                            {athlete.email}
+                                        </p>
 
-                                team.map(player => {
+                                        <p>
 
-                                    const averageKnee =
-                                        (
-                                            Number(player.left_knee_angle || 0) +
-                                            Number(player.right_knee_angle || 0)
-                                        ) / 2;
+                                            <strong>
+                                                Sport:
+                                            </strong>{" "}
+
+                                            {athlete.sport ||
+                                                "Not updated"}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Experience:
+                                            </strong>{" "}
+
+                                            {athlete.experience ??
+                                                0} years
+
+                                        </p>
+
+
+                                        {analysis ? (
+
+                                            <>
+
+                                                <p>
+
+                                                    <strong>
+                                                        Movement:
+                                                    </strong>{" "}
+
+                                                    {analysis.movement_quality ||
+                                                        "Unknown"}
+
+                                                </p>
+
+
+                                                <p>
+
+                                                    <strong>
+                                                        Risk:
+                                                    </strong>{" "}
+
+                                                    {analysis.injury_risk ||
+                                                        "Unknown"}
+
+                                                </p>
+
+                                            </>
+
+                                        ) : (
+
+                                            <p>
+
+                                                <strong>
+                                                    Analysis:
+                                                </strong>{" "}
+
+                                                No analysis available yet
+
+                                            </p>
+
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+                            );
+
+                        })}
+
+                    </div>
+
+                )}
+
+            </section>
+
+
+            {/* ==================================================
+                LATEST ANALYSES
+            ================================================== */}
+
+            <section className="dashboard-section">
+
+                <div className="section-heading">
+
+                    <div>
+
+                        <p className="dashboard-label">
+                            AI ANALYSIS
+                        </p>
+
+                        <h2>
+                            Latest Athlete Analyses
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                {latestAnalyses.length === 0 ? (
+
+                    <div className="empty-analysis">
+
+                        <FaChartLine size={32} />
+
+                        <h3>
+                            No analyses available
+                        </h3>
+
+                        <p>
+                            Connected athletes will appear here
+                            after uploading training videos.
+                        </p>
+
+                    </div>
+
+                ) : (
+
+                    <div className="history-table-wrapper">
+
+                        <table className="analysis-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Athlete
+                                    </th>
+
+                                    <th>
+                                        Sport
+                                    </th>
+
+                                    <th>
+                                        Movement Quality
+                                    </th>
+
+                                    <th>
+                                        Injury Risk
+                                    </th>
+
+                                    <th>
+                                        Symmetry
+                                    </th>
+
+                                    <th>
+                                        Knee Angle
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {latestAnalyses.map(item => {
+
+                                    const video =
+                                        item?.latest_video;
+
+                                    const analysis =
+                                        video?.analysis;
+
 
                                     return (
 
-                                        <tr key={player.id}>
+                                        <tr
+                                            key={
+                                                item?.athlete?.id
+                                            }
+                                        >
+
+                                            <td>
+                                                <strong>
+                                                    {
+                                                        item?.athlete?.username ||
+                                                        "Unknown"
+                                                    }
+                                                </strong>
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    item?.athlete?.sport ||
+                                                    "Not updated"
+                                                }
+                                            </td>
+
+                                            <td>
+                                                {
+                                                    analysis?.movement_quality ||
+                                                    "No analysis"
+                                                }
+                                            </td>
 
                                             <td>
 
-                                                {player.filename}
+                                                <span className="risk-badge">
+
+                                                    {
+                                                        analysis?.injury_risk ||
+                                                        "No analysis"
+                                                    }
+
+                                                </span>
 
                                             </td>
 
                                             <td>
 
-                                                {player.movement_quality}
+                                                {
+                                                    analysis
+                                                        ? `${Number(
+                                                            analysis.posture_symmetry || 0
+                                                        ).toFixed(1)}%`
+                                                        : "--"
+                                                }
 
                                             </td>
 
                                             <td>
 
-                                                {player.injury_risk}
-
-                                            </td>
-
-                                            <td>
-
-                                                {Number(player.posture_symmetry || 0).toFixed(1)}%
-
-                                            </td>
-
-                                            <td>
-
-                                                {averageKnee.toFixed(1)}°
+                                                {
+                                                    analysis
+                                                        ? `${Number(
+                                                            analysis.average_knee_angle || 0
+                                                        ).toFixed(1)}°`
+                                                        : "--"
+                                                }
 
                                             </td>
 
@@ -337,112 +970,17 @@ export default function CoachDashboard() {
 
                                     );
 
-                                })
+                                })}
 
-                            }
+                            </tbody>
 
-                        </tbody>
+                        </table>
 
-                    </table>
+                    </div>
 
-                }
+                )}
 
-            </div>
-
-            <div
-                className="middle-section"
-                style={{ marginTop: "30px" }}
-            >
-
-                <div className="upload-card">
-
-                    <h2>
-
-                        Training Recommendations
-
-                    </h2>
-
-                    <ul
-                        style={{
-                            lineHeight: "2"
-                        }}
-                    >
-
-                        <li>
-
-                            High-risk athletes should undergo detailed biomechanical assessment.
-
-                        </li>
-
-                        <li>
-
-                            Focus on improving movement symmetry during training.
-
-                        </li>
-
-                        <li>
-
-                            Monitor knee valgus and hip stability regularly.
-
-                        </li>
-
-                        <li>
-
-                            Schedule weekly movement screening sessions.
-
-                        </li>
-
-                        <li>
-
-                            Encourage adequate recovery between intensive sessions.
-
-                        </li>
-
-                    </ul>
-
-                </div>
-
-                <div className="tips-card">
-
-                    <h2>
-
-                        Recent Activity
-
-                    </h2>
-
-                    <p>
-
-                        ✔ Team data synchronized.
-
-                    </p>
-
-                    <p>
-
-                        ✔ Injury risk updated.
-
-                    </p>
-
-                    <p>
-
-                        ✔ Movement reports generated.
-
-                    </p>
-
-                    <p>
-
-                        ✔ Performance analytics available.
-
-                    </p>
-
-                    <p>
-
-                        ✔ Coach recommendations prepared.
-
-                    </p>
-
-                </div>
-
-            </div>
+            </section>
 
         </div>
 
